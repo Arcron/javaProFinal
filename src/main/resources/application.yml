@@ -1,0 +1,25 @@
+server:
+  port: 8182
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/homework8
+    username: homework8
+    password: homework8
+    driver: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: db/changelog/db.changelog-master.yaml
+    database-change-log-table: database_changelog
+    database-change-log-lock-table: database_changelog_lock
+
+scheduler:
+  limit:
+    daily:
+      update: "0 0 0 * * *"

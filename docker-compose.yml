@@ -1,0 +1,11 @@
+services:
+  postgres_db_product:
+    image: postgres:15-alpine
+    container_name: postgres_db_product
+    environment:
+      POSTGRES_DB: homework8
+      POSTGRES_USER: homework8
+      POSTGRES_PASSWORD: homework8
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
