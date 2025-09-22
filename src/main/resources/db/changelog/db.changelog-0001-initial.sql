@@ -8,7 +8,7 @@
 
 -- DROP TABLE user_limit;
 
-CREATE TABLE IF NOT EXISTS user_limit (
+CREATE TABLE IF NOT EXISTS users_limit (
     user_id BIGINT primary key,
     daily_limit DOUBLE PRECISION
 );
