@@ -14,11 +14,13 @@ import learning.java.pro.entity.UserLimit;
 import learning.java.pro.excetpion.LowDailyLimitException;
 import learning.java.pro.repository.UserLimitRepository;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -28,15 +30,12 @@ public class UserLimitServiceTest {
     @Mock
     private UserLimitRepository userLimitRepository;
 
-    @Mock
-    private IMaxLimitService maxLimitService;
-
     @InjectMocks
     private UserLimitService userLimitService;
 
     private static final Long userId = 1L;
-    private static final Double amount = 500.0;
-    private static final Double currentMaxLimit = 1000.0;
+    private static final Double amount = 5000.0;
+    private static final Double currentMaxLimit = 10000.0;
 
     private static UserLimit userLimit;
     private static UserLimit newUserLimit;
@@ -47,11 +46,15 @@ public class UserLimitServiceTest {
         newUserLimit = new UserLimit(userId, currentMaxLimit);
     }
 
+    @BeforeEach
+    public void setMaxLimit() {
+        ReflectionTestUtils.setField(userLimitService, "maxLimit", currentMaxLimit);
+    }
+
     @Test
     public void increaseDailyLimit_givenExistUserLimit_shouldIncreaseLimit() {
         //given
         when(userLimitRepository.findById(userId)).thenReturn(Optional.of(userLimit));
-        when(maxLimitService.getCurrentMaxLimit()).thenReturn(currentMaxLimit);
         when(userLimitRepository.save(any())).thenReturn(newUserLimit);
 
         //when
@@ -65,7 +68,6 @@ public class UserLimitServiceTest {
     public void decreaseDailyLimit_givenExistUserLimit_shouldDecreaseLimit() {
         //given
         when(userLimitRepository.findById(userId)).thenReturn(Optional.of(userLimit));
-        when(maxLimitService.getCurrentMaxLimit()).thenReturn(currentMaxLimit);
         when(userLimitRepository.save(any())).thenReturn(newUserLimit);
 
         //when
@@ -79,7 +81,6 @@ public class UserLimitServiceTest {
     public void decreaseDailyLimit_givenExistUserLimitAndLowLimit_shouldThrowLowDailyLimitException() {
         //given
         when(userLimitRepository.findById(userId)).thenReturn(Optional.of(userLimit));
-        when(maxLimitService.getCurrentMaxLimit()).thenReturn(currentMaxLimit);
         when(userLimitRepository.save(any())).thenReturn(newUserLimit);
 
         //when
@@ -93,12 +94,11 @@ public class UserLimitServiceTest {
 
     @Test
     public void resetUsersDailyLimit_givenValid_shouldResetCurrentLimit() {
-        Double currentMaxLimit = 1000.0;
-
-        when(maxLimitService.getCurrentMaxLimit()).thenReturn(currentMaxLimit);
-
+        //given
+        //when
         userLimitService.resetUsersDailyLimit();
 
+        //then
         verify(userLimitRepository, times(1)).resetUsersDailyLimit(currentMaxLimit);
     }
 }

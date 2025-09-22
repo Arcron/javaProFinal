@@ -23,3 +23,7 @@ scheduler:
   limit:
     daily:
       update: "0 0 0 * * *"
+
+business:
+  dictionary:
+    max-limit: 10000.0

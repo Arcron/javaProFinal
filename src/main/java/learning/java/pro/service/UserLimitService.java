@@ -6,6 +6,7 @@ import learning.java.pro.excetpion.LowDailyLimitException;
 import learning.java.pro.repository.UserLimitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,15 +18,17 @@ import java.util.Optional;
 public class UserLimitService implements IUserLimitService {
 
     private final UserLimitRepository userLimitRepository;
-    private final IMaxLimitService maxLimitService;
+
+    @Value("${business.dictionary.max-limit}")
+    private Double maxLimit;
 
     @Override
     public void increaseDailyLimit(UserLimitRequestDto requestDto) {
         log.info("Try to increase daily limit for user with id: {}, by amount: {}", requestDto.userId(), requestDto.amount());
         Optional<UserLimit> userLimitOptional = userLimitRepository.findById(requestDto.userId());
         UserLimit userLimit = userLimitOptional.orElse(createNewUserLimit(requestDto.userId()));
-        if (requestDto.amount() + userLimit.getDailyLimit() > maxLimitService.getCurrentMaxLimit()) {
-            userLimitRepository.resetUserDailyLimit(userLimit.getUserId(), maxLimitService.getCurrentMaxLimit());
+        if (requestDto.amount() + userLimit.getDailyLimit() > maxLimit) {
+            userLimitRepository.resetUserDailyLimit(userLimit.getUserId(), maxLimit);
         } else {
             userLimitRepository.increaseDailyLimit(userLimit.getUserId(), requestDto.amount());
         }
@@ -50,13 +53,13 @@ public class UserLimitService implements IUserLimitService {
     @Override
     public void resetUsersDailyLimit() {
         log.info("Try to reset users daily limit");
-        userLimitRepository.resetUsersDailyLimit(maxLimitService.getCurrentMaxLimit());
+        userLimitRepository.resetUsersDailyLimit(maxLimit);
         log.info("Users daily limit reset successfully");
     }
 
     private UserLimit createNewUserLimit(Long userId) {
         log.info("User with id: {} does not exist", userId);
-        UserLimit newUserLimit = new UserLimit(userId, maxLimitService.getCurrentMaxLimit());
+        UserLimit newUserLimit = new UserLimit(userId, maxLimit);
         UserLimit userLimit = userLimitRepository.save(newUserLimit);
         log.info("Create new user with id: {}", userLimit.getUserId());
         return userLimit;
@@ -65,7 +68,7 @@ public class UserLimitService implements IUserLimitService {
     @Scheduled(cron = "${scheduler.limit.daily.update}")
     void updateDailyLimits() {
         log.info("Updating daily limits for all users");
-        userLimitRepository.resetUsersDailyLimit(maxLimitService.getCurrentMaxLimit());
+        userLimitRepository.resetUsersDailyLimit(maxLimit);
         log.info("Daily limits updated successfully");
     }
 }
